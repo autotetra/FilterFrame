@@ -26,3 +26,15 @@ exports.getPingById = (req, res) => {
 
   res.json({ ping });
 };
+
+exports.deletePing = (req, res) => {
+  const { id } = req.params;
+  const index = pings.findIndex((p) => p.id === parseInt(id));
+
+  if (index === -1) {
+    res.status(404).json({ message: "Ping not found" });
+  }
+
+  pings.splice(index, 1);
+  res.json(`Ping with id ${id} deleted`);
+};
