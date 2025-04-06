@@ -1,21 +1,21 @@
 const express = require("express");
-require("dotenv").config();
+const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+
+const authRoutes = require("./routes/authRoutes");
+
+dotenv.config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 5050;
-
-// Route imports
-const pingRoute = require("./routes/ping");
-
 // Middleware
 app.use(express.json());
 
 // Routes
-app.use("/", pingRoute);
+app.use("/api/auth", authRoutes);
 
 // Start server
+const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
