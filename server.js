@@ -8,6 +8,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
 // Middleware
 app.use(express.json());
 
