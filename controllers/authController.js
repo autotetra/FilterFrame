@@ -20,7 +20,9 @@ const register = async (req, res) => {
     const newUser = new User({ email, password: hashedPassword });
     await newUser.save();
 
-    res.status(201).json({ message: "User registered succesfully" });
+    res.status(201).json({
+      message: "Registration successful. Your account is pending approval.",
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -46,6 +48,17 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // 2.5 Chec user status
+    if (existingUser.status === "pending") {
+      return res
+        .status(403)
+        .json({ message: "Your account is pending approval." });
+    }
+
+    if (existingUser.status === "declined") {
+      return res.status(403).json({ mesage: "Your account was not approved." });
+    }
+
     // 3. Generate JWT
     const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
@@ -59,4 +72,18 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getPendingUsers = async (req, res) => {
+  try {
+    const pendingUsers = await User.find({ status: "pending" }).select(
+      "-password"
+    );
+    res.status(200).json({ users: pendingUsers });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Server error while fetching pending users." });
+  }
+};
+
+module.exports = { register, login, getPendingUsers };
