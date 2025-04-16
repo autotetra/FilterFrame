@@ -1,8 +1,13 @@
+const { isAdmin } = require("../middleware/adminMiddleware");
 const express = require("express");
-const { register, login } = require("../controllers/authController");
+const {
+  register,
+  login,
+  getPendingUsers,
+  updateUserStatus,
+} = require("../controllers/authController");
 const router = express.Router();
 const authenticateToken = require("../middleware/authMiddleware");
-const isAdmin = require("../middleware/adminMiddleware");
 const User = require("../models/User");
 
 router.post("/register", register);
@@ -15,5 +20,7 @@ router.get("/protected", authenticateToken, (req, res) => {
 });
 
 router.get("/pending-users", authenticateToken, isAdmin, getPendingUsers);
+
+router.patch("/users/:id/status", authenticateToken, isAdmin, updateUserStatus);
 
 module.exports = router;

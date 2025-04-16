@@ -86,4 +86,21 @@ const getPendingUsers = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getPendingUsers };
+const updateUserStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body; // "approved" or "declined"
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.status = status;
+    await user.save();
+
+    res.status(200).json({ message: `User status updated to ${status}` });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error updating user status" });
+  }
+};
+
+module.exports = { register, login, getPendingUsers, updateUserStatus };

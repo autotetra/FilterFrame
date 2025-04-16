@@ -1,8 +1,15 @@
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+const User = require("../models/User");
+
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id); // req.user comes from the token
+    if (!user || user.role !== "admin") {
+      return res.status(500).json({ message: "Access denied. Admins only." });
+    }
     next();
-  } else {
-    res.status(403).json({ message: "Access denied. Admins only" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
