@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { sendEmail } = require("../utils/emailSender");
 require("dotenv").config();
 
 const register = async (req, res) => {
@@ -95,6 +96,14 @@ const updateUserStatus = async (req, res) => {
 
     user.status = status;
     await user.save();
+
+    if (user.status === "approved") {
+      await sendEmail({
+        to: user.email,
+        subject: "Your account has bee approved 🎉",
+        text: "Hi there! Your account has been approved. You can now log in ot FilterFrame",
+      });
+    }
 
     res.status(200).json({ message: `User status updated to ${status}` });
   } catch (err) {
