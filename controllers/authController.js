@@ -100,8 +100,8 @@ const updateUserStatus = async (req, res) => {
     if (user.status === "approved") {
       await sendEmail({
         to: user.email,
-        subject: "Your account has bee approved 🎉",
-        text: "Hi there! Your account has been approved. You can now log in ot FilterFrame",
+        subject: "Your account has been approved 🎉",
+        loginLink: "https://www.google.com",
       });
     }
 
