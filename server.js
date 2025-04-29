@@ -17,7 +17,11 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5500", "http://127.0.0.1:5500"], // <-- Add both
+    origin: [
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "https://34b6-2a02-587-2a0b-c900-31e0-e968-5a6c-dd68.ngrok-free.app",
+    ], // <-- Add both
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })

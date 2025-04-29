@@ -18,7 +18,6 @@ const getAllRecords = async (req, res) => {
         },
       },
     });
-
     res.json(response.results);
   } catch (err) {
     console.error("Error fetching records:", err);

@@ -44,9 +44,22 @@ if (!token) {
         });
         statusCell.appendChild(statusSelect);
 
+        // Create Save button
+        const actionCell = document.createElement("td");
+        const saveButton = document.createElement("button");
+        saveButton.innerText = "Save";
+        saveButton.addEventListener("click", () => {
+          const updatedName = nameInput.value;
+          const updatedStatus = statusSelect.value;
+
+          console.log("Saving...", updatedName, updatedStatus);
+        });
+        actionCell.appendChild(saveButton);
+
         // Append to table
         row.appendChild(nameCell);
         row.appendChild(statusCell);
+        row.appendChild(actionCell);
         tableBody.appendChild(row);
       });
     })
