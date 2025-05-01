@@ -22,7 +22,7 @@ app.use(
       "http://127.0.0.1:5500",
       "https://34b6-2a02-587-2a0b-c900-31e0-e968-5a6c-dd68.ngrok-free.app",
     ], // <-- Add both
-    methods: "GET,POST,PUT,DELETE",
+    methods: "GET,POST,PUT,DELETE,PATCH",
     credentials: true,
   })
 );

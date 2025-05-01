@@ -1,7 +1,7 @@
 document
   .getElementById("login-form")
   .addEventListener("submit", async function (e) {
-    e.preventDefault(); // Prevent form from submitting normally
+    e.preventDefault();
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -17,18 +17,16 @@ document
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        console.log("Token Saved", data.token);
-        // Redirect to dashboard
+      if (data.status === "success") {
+        localStorage.setItem("token", data.data.token);
+        console.log("Token Saved", data.data.token);
         window.location.href = "dashboard.html";
       } else {
         document.getElementById("message").innerText =
           data.message || "Login failed";
       }
     } catch (err) {
-      console.error("Error:", err);
-      document.getElementById("message").innerText =
-        "Error connecting to server";
+      console.error("Error connecting to server:", err);
+      document.getElementById("message").innerText = "Network error";
     }
   });

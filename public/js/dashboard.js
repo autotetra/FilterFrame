@@ -2,7 +2,7 @@
 const token = localStorage.getItem("token");
 
 if (!token) {
-  // No token? Send them back to login
+  // No token? Redirect to login
   window.location.href = "login.html";
 } else {
   // Token exists, fetch data
@@ -14,12 +14,12 @@ if (!token) {
   })
     .then((res) => res.json())
     .then((data) => {
-      console.log("Fetched data:", data);
+      if (data.status !== "success") throw data;
 
       const tableBody = document.getElementById("data");
       tableBody.innerHTML = ""; // Clear existing content
 
-      data.forEach((item) => {
+      data.data.forEach((item) => {
         const name = item.properties?.Name?.title?.[0]?.plain_text || "No Name";
         const status = item.properties?.Status?.status?.name || "No Status";
 
@@ -44,19 +44,55 @@ if (!token) {
         });
         statusCell.appendChild(statusSelect);
 
-        // Create Save button
+        // Save button
         const actionCell = document.createElement("td");
         const saveButton = document.createElement("button");
         saveButton.innerText = "Save";
+
         saveButton.addEventListener("click", () => {
           const updatedName = nameInput.value;
           const updatedStatus = statusSelect.value;
 
-          console.log("Saving...", updatedName, updatedStatus);
+          fetch(`http://localhost:8000/api/frontend/update/${item.id}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              properties: {
+                Name: {
+                  title: [
+                    {
+                      text: {
+                        content: updatedName,
+                      },
+                    },
+                  ],
+                },
+                Status: {
+                  status: {
+                    name: updatedStatus,
+                  },
+                },
+              },
+            }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              alert(data.message || "Record updated successfully");
+            })
+            .catch(async (err) => {
+              try {
+                const data = await err.json();
+                alert(data.message || "Update failed");
+              } catch (e) {
+                alert("Something went wrong.");
+              }
+            });
         });
-        actionCell.appendChild(saveButton);
 
-        // Append to table
+        actionCell.appendChild(saveButton);
         row.appendChild(nameCell);
         row.appendChild(statusCell);
         row.appendChild(actionCell);
@@ -65,7 +101,6 @@ if (!token) {
     })
     .catch((err) => {
       console.error("Error fetching data:", err);
-      // Maybe clear the token and redirect to login
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });

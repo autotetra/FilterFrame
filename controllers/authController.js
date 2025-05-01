@@ -8,25 +8,29 @@ const register = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(404).json({ message: "Email already registered" });
+      return res.status(400).json({
+        status: "error",
+        message: "Email already registered",
+      });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create and save user
     const newUser = new User({ email, password: hashedPassword });
     await newUser.save();
 
     res.status(201).json({
+      status: "success",
       message: "Registration successful. Your account is pending approval.",
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Server error during registration",
+      error: err.message,
+    });
   }
 };
 
@@ -37,7 +41,10 @@ const login = async (req, res) => {
     // 1. Find the user
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
     }
 
     // 2. Compare passwords
@@ -46,30 +53,46 @@ const login = async (req, res) => {
       existingUser.password
     );
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid credentials",
+      });
     }
 
-    // 2.5 Chec user status
+    // 2.5 Check user status
     if (existingUser.status === "pending") {
-      return res
-        .status(403)
-        .json({ message: "Your account is pending approval." });
+      return res.status(403).json({
+        status: "error",
+        message: "Your account is pending approval.",
+      });
     }
 
+    // 3. Check if the account was declined
     if (existingUser.status === "declined") {
-      return res.status(403).json({ mesage: "Your account was not approved." });
+      return res.status(403).json({
+        status: "error",
+        message: "Your account was not approved.",
+      });
     }
 
-    // 3. Generate JWT
+    // 4. Generate JWT
     const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    // 4. Return success response with token
-    res.status(200).json({ message: "Login successful", token });
+    // 5. Return success response with token
+    return res.status(200).json({
+      status: "success",
+      message: "Login successful",
+      data: { token },
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Login error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
 
@@ -78,21 +101,33 @@ const getPendingUsers = async (req, res) => {
     const pendingUsers = await User.find({ status: "pending" }).select(
       "-password"
     );
-    res.status(200).json({ users: pendingUsers });
+    res.status(200).json({
+      status: "success",
+      message: "Pending users fetched successfully",
+      data: pendingUsers,
+    });
   } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ message: "Server error while fetching pending users." });
+    console.error("Fetch pending users error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Server error while fetching pending users",
+      error: err.message,
+    });
   }
 };
 
 const updateUserStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body; // "approved" or "declined"
+
   try {
     const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
 
     user.status = status;
     await user.save();
@@ -105,10 +140,18 @@ const updateUserStatus = async (req, res) => {
       });
     }
 
-    res.status(200).json({ message: `User status updated to ${status}` });
+    res.status(200).json({
+      status: "success",
+      message: `User status updated to ${status}`,
+      data: { userId: user._id, email: user.email, status: user.status },
+    });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error updating user status" });
+    console.error("Update user status error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Error updating user status",
+      error: err.message,
+    });
   }
 };
 
