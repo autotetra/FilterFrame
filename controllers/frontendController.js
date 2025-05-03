@@ -36,11 +36,29 @@ const getAllRecords = async (req, res) => {
 const updateRecord = async (req, res) => {
   try {
     const pageId = req.params.id;
-    const { properties } = req.body;
+    const { name, status } = req.body;
 
     const response = await client.pages.update({
       page_id: pageId,
-      properties: properties,
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: name,
+              },
+            },
+          ],
+        },
+        Status: {
+          status: {
+            name: status,
+          },
+        },
+        Assignee: {
+          email: userEmail,
+        },
+      },
     });
     res.status(200).json({
       status: "success",
@@ -78,4 +96,49 @@ const deleteRecord = async (req, res) => {
   }
 };
 
-module.exports = { getAllRecords, updateRecord, deleteRecord };
+const createRecord = async (req, res) => {
+  try {
+    const { name, status } = req.body;
+    const userEmail = req.user.email;
+
+    const newPage = await client.pages.create({
+      parent: {
+        database_id: process.env.NOTION_DATABASE_ID,
+      },
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: name,
+              },
+            },
+          ],
+        },
+        Status: {
+          status: {
+            name: status,
+          },
+        },
+        Assignee: {
+          email: userEmail,
+        },
+      },
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Record created successfully",
+      data: newPage,
+    });
+  } catch (err) {
+    console.error("Error creating record:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to create record",
+      error: err.message,
+    });
+  }
+};
+
+module.exports = { getAllRecords, updateRecord, deleteRecord, createRecord };

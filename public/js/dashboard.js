@@ -5,6 +5,39 @@ if (!token) {
   // No token? Redirect to login
   window.location.href = "login.html";
 } else {
+  document.getElementById("add-record").addEventListener("click", async () => {
+    const name = document.getElementById("name").value;
+    const status = document.getElementById("status").value;
+
+    if (!name || !status) return alert("Please fill all frields");
+
+    try {
+      const res = await fetch("http://localhost:8000/api/frontend/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          status,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw data;
+
+      alert(data.message || "Record created successfully");
+      window.location.reload();
+    } catch (err) {
+      try {
+        const data = await err.json?.();
+        alert(data?.message || "Failed to create record.");
+      } catch (e) {
+        alert("Something went wrong");
+      }
+    }
+  });
   // Token exists, fetch data
   fetch("http://localhost:8000/api/frontend/records", {
     method: "POST",
@@ -60,22 +93,8 @@ if (!token) {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              properties: {
-                Name: {
-                  title: [
-                    {
-                      text: {
-                        content: updatedName,
-                      },
-                    },
-                  ],
-                },
-                Status: {
-                  status: {
-                    name: updatedStatus,
-                  },
-                },
-              },
+              name: updatedName,
+              status: updatedStatus,
             }),
           })
             .then((res) => res.json())
