@@ -92,7 +92,38 @@ if (!token) {
             });
         });
 
+        // Delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.innerText = "Delete";
+        deleteButton.style.marginLeft = "10px";
+
+        deleteButton.addEventListener("click", () => {
+          if (confirm("Are you sure you want to delete this record?")) {
+            fetch(`http://localhost:8000/api/frontend/delete/${item.id}`, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                alert(data.message || "Record deleted successfully");
+                window.location.reload();
+              })
+              .catch(async (err) => {
+                try {
+                  const data = await err.json();
+                  alert(data.message || "Delete failed");
+                } catch (e) {
+                  alert("Something went wrong.");
+                }
+              });
+          }
+        });
+
         actionCell.appendChild(saveButton);
+        actionCell.appendChild(deleteButton);
+
         row.appendChild(nameCell);
         row.appendChild(statusCell);
         row.appendChild(actionCell);

@@ -18,7 +18,7 @@ const getAllRecords = async (req, res) => {
         },
       },
     });
-    res.status(200)({
+    res.status(200).json({
       status: "success",
       message: "Records fetched successfully",
       data: response.results,
@@ -54,4 +54,28 @@ const updateRecord = async (req, res) => {
   }
 };
 
-module.exports = { getAllRecords, updateRecord };
+const deleteRecord = async (req, res) => {
+  try {
+    const pageId = req.params.id;
+
+    await client.pages.update({
+      page_id: pageId,
+      archived: true, // Notion uses "archived" to mark a page as deleted
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Recrord deleted succesfully",
+      data: { id: pageId },
+    });
+  } catch (err) {
+    console.error("Error deleting record:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to delete record",
+      error: err.message,
+    });
+  }
+};
+
+module.exports = { getAllRecords, updateRecord, deleteRecord };
