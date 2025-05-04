@@ -6,8 +6,8 @@ if (!token) {
   window.location.href = "login.html";
 } else {
   document.getElementById("add-record").addEventListener("click", async () => {
-    const name = document.getElementById("name").value;
-    const status = document.getElementById("status").value;
+    const name = document.getElementById("new-name").value;
+    const status = document.getElementById("new-status").value;
 
     if (!name || !status) return alert("Please fill all frields");
 

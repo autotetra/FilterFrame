@@ -18,9 +18,17 @@ document
       const data = await response.json();
 
       if (data.status === "success") {
-        localStorage.setItem("token", data.data.token);
-        console.log("Token Saved", data.data.token);
-        window.location.href = "dashboard.html";
+        const token = data.data.token;
+        const role = data.data.role;
+        localStorage.setItem("token", token);
+        console.log("Token Saved", token);
+
+        // Decode token
+        if (role === "admin") {
+          window.location.href = "adminDashboard.html";
+        } else {
+          window.location.href = "userDashboard.html";
+        }
       } else {
         document.getElementById("message").innerText =
           data.message || "Login failed";

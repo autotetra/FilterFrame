@@ -37,6 +37,7 @@ const updateRecord = async (req, res) => {
   try {
     const pageId = req.params.id;
     const { name, status } = req.body;
+    const userEmail = req.user.email;
 
     const response = await client.pages.update({
       page_id: pageId,

@@ -36,9 +36,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    // 1. Find the user
+    // 1. Find user by email
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(404).json({
@@ -47,7 +46,7 @@ const login = async (req, res) => {
       });
     }
 
-    // 2. Compare passwords
+    // 2. Compare password
     const isPasswordValid = await bcrypt.compare(
       password,
       existingUser.password
@@ -55,40 +54,46 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         status: "error",
-        message: "Invalid credentials",
+        message: "Invalid password",
       });
     }
 
-    // 2.5 Check user status
-    if (existingUser.status === "pending") {
-      return res.status(403).json({
-        status: "error",
-        message: "Your account is pending approval.",
-      });
+    // 3. Check role
+    const userRole = existingUser.role;
+
+    // 4. Check status (only for normal users)
+    if (userRole === "user") {
+      if (existingUser.status === "pending") {
+        return res.status(403).json({
+          status: "error",
+          message: "Your account is pending approval",
+        });
+      }
+      if (existingUser.status === "declined") {
+        return res.status(403).json({
+          status: "error",
+          message: "Your account was not approved",
+        });
+      }
     }
 
-    // 3. Check if the account was declined
-    if (existingUser.status === "declined") {
-      return res.status(403).json({
-        status: "error",
-        message: "Your account was not approved.",
-      });
-    }
-
-    // 4. Generate JWT
+    // 5. Generate token
     const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    // 5. Return success response with token
+    // 6. Success response
     return res.status(200).json({
       status: "success",
       message: "Login successful",
-      data: { token },
+      data: {
+        token,
+        role: userRole,
+      },
     });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
       message: "Server error",
       error: err.message,
@@ -96,63 +101,4 @@ const login = async (req, res) => {
   }
 };
 
-const getPendingUsers = async (req, res) => {
-  try {
-    const pendingUsers = await User.find({ status: "pending" }).select(
-      "-password"
-    );
-    res.status(200).json({
-      status: "success",
-      message: "Pending users fetched successfully",
-      data: pendingUsers,
-    });
-  } catch (err) {
-    console.error("Fetch pending users error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Server error while fetching pending users",
-      error: err.message,
-    });
-  }
-};
-
-const updateUserStatus = async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body; // "approved" or "declined"
-
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
-    }
-
-    user.status = status;
-    await user.save();
-
-    if (user.status === "approved") {
-      await sendEmail({
-        to: user.email,
-        subject: "Your account has been approved 🎉",
-        loginLink: "https://www.google.com",
-      });
-    }
-
-    res.status(200).json({
-      status: "success",
-      message: `User status updated to ${status}`,
-      data: { userId: user._id, email: user.email, status: user.status },
-    });
-  } catch (err) {
-    console.error("Update user status error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Error updating user status",
-      error: err.message,
-    });
-  }
-};
-
-module.exports = { register, login, getPendingUsers, updateUserStatus };
+module.exports = { register, login };
