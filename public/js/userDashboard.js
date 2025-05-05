@@ -12,7 +12,7 @@ if (!token) {
     if (!name || !status) return alert("Please fill all frields");
 
     try {
-      const res = await fetch("http://localhost:8000/api/frontend/create", {
+      const res = await fetch("http://localhost:8000/api/records/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +39,7 @@ if (!token) {
     }
   });
   // Token exists, fetch data
-  fetch("http://localhost:8000/api/frontend/records", {
+  fetch("http://localhost:8000/api/records", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ if (!token) {
           const updatedName = nameInput.value;
           const updatedStatus = statusSelect.value;
 
-          fetch(`http://localhost:8000/api/frontend/update/${item.id}`, {
+          fetch(`http://localhost:8000/api/records/update/${item.id}`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -118,7 +118,7 @@ if (!token) {
 
         deleteButton.addEventListener("click", () => {
           if (confirm("Are you sure you want to delete this record?")) {
-            fetch(`http://localhost:8000/api/frontend/delete/${item.id}`, {
+            fetch(`http://localhost:8000/api/records/delete/${item.id}`, {
               method: "DELETE",
               headers: {
                 Authorization: `Bearer ${token}`,

@@ -3,26 +3,6 @@ const User = require("../models/User");
 const { sendEmail } = require("../utils/emailSender");
 require("dotenv").config();
 
-const getPendingUsers = async (req, res) => {
-  try {
-    const pendingUsers = await User.find({ status: "pending" }).select(
-      "-password"
-    );
-    res.status(200).json({
-      status: "success",
-      message: "Pending users fetched successfully",
-      data: pendingUsers,
-    });
-  } catch (err) {
-    console.error("Fetch pending users error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Server error while fetching pending users",
-      error: err.message,
-    });
-  }
-};
-
 const updateUserStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body; // "approved" or "declined"
@@ -50,7 +30,7 @@ const updateUserStatus = async (req, res) => {
     res.status(200).json({
       status: "success",
       message: `User status updated to ${status}`,
-      data: { userId: user._id, email: user.email, status: user.status },
+      users: { userId: user._id, email: user.email, status: user.status },
     });
   } catch (err) {
     console.error("Update user status error:", err);
@@ -62,4 +42,22 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
-module.exports = { getPendingUsers, updateUserStatus };
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password"); // Exclude password
+    res.status(200).json({
+      status: "success",
+      message: "Users fetched successfully",
+      users: users,
+    });
+  } catch (err) {
+    console.error("Fetch users error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Server error while fetching users",
+      error: err.message,
+    });
+  }
+};
+
+module.exports = { updateUserStatus, getUsers };

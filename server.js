@@ -4,7 +4,8 @@ const connectDB = require("./config/db");
 const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
-const recordRoutes = require("./routes/recordsRoutes");
+const recordsRoutes = require("./routes/recordsRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 dotenv.config();
 connectDB();
@@ -30,6 +31,7 @@ app.use(
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordsRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5050;
