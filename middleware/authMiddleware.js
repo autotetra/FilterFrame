@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User"); // Load User model
+const { sendError } = require("../services/responseService"); // ✅ Unified response
 require("dotenv").config();
 
 const authenticateToken = async (req, res, next) => {
@@ -7,9 +8,7 @@ const authenticateToken = async (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided" });
+    return sendError(res, "Access denied. No token provided", 401);
   }
 
   try {
@@ -18,14 +17,14 @@ const authenticateToken = async (req, res, next) => {
     // Query MongoDB to fetch full user data
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return sendError(res, "User not found", 404);
     }
 
     req.user = user; // Attach full user object to request
 
     next();
   } catch (err) {
-    return res.status(403).json({ message: "Invalid token." });
+    return sendError(res, "Invalid token", 403, err.message);
   }
 };
 

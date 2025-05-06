@@ -23,7 +23,6 @@ document
         localStorage.setItem("token", token);
         console.log("Token Saved", token);
 
-        // Decode token
         if (role === "admin") {
           window.location.href = "adminDashboard.html";
         } else {
@@ -35,6 +34,7 @@ document
       }
     } catch (err) {
       console.error("Error connecting to server:", err);
-      document.getElementById("message").innerText = "Network error";
+      document.getElementById("message").innerText =
+        err.message || "Network error";
     }
   });

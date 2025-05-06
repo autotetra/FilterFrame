@@ -5,7 +5,7 @@ const path = require("path");
 const sendEmail = async ({ to, subject, loginLink }) => {
   try {
     // 1. Load the HTML template
-    const templatePath = path.join(__dirname, "../emails/approvalEmail.html");
+    const templatePath = path.join(__dirname, "../emails/accountApproved.html");
     let htmlContent = await fs.readFile(templatePath, "utf-8");
 
     // 2. Replace placeholders

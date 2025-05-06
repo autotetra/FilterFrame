@@ -1,7 +1,8 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const { sendEmail } = require("../utils/emailSender");
+const { sendEmail } = require("../services/emailService");
+const { sendSuccess, sendError } = require("../services/responseService");
 require("dotenv").config();
 
 const register = async (req, res) => {
@@ -10,27 +11,22 @@ const register = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        status: "error",
-        message: "Email already registered",
-      });
+      return sendError(res, "Email already registered", 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ email, password: hashedPassword });
     await newUser.save();
 
-    res.status(201).json({
-      status: "success",
-      message: "Registration successful. Your account is pending approval.",
-    });
+    return sendSuccess(
+      res,
+      "Registration successful. Your account is pending approval.",
+      null,
+      201
+    );
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Server error during registration",
-      error: err.message,
-    });
+    return sendError(res, "Server error during registration", 500, err.message);
   }
 };
 
@@ -40,10 +36,7 @@ const login = async (req, res) => {
     // 1. Find user by email
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
+      return sendError(res, "User not found", 404);
     }
 
     // 2. Compare password
@@ -52,10 +45,7 @@ const login = async (req, res) => {
       existingUser.password
     );
     if (!isPasswordValid) {
-      return res.status(401).json({
-        status: "error",
-        message: "Invalid password",
-      });
+      return sendError(res, "Invalid password", 401);
     }
 
     // 3. Check role
@@ -64,16 +54,10 @@ const login = async (req, res) => {
     // 4. Check status (only for normal users)
     if (userRole === "user") {
       if (existingUser.status === "pending") {
-        return res.status(403).json({
-          status: "error",
-          message: "Your account is pending approval",
-        });
+        return sendError(res, "Your account is pending approval", 403);
       }
       if (existingUser.status === "declined") {
-        return res.status(403).json({
-          status: "error",
-          message: "Your account was not approved",
-        });
+        return sendError(res, "Your account was not approved", 403);
       }
     }
 
@@ -83,21 +67,13 @@ const login = async (req, res) => {
     });
 
     // 6. Success response
-    return res.status(200).json({
-      status: "success",
-      message: "Login successful",
-      data: {
-        token,
-        role: userRole,
-      },
+    return sendSuccess(res, "Login successful", {
+      token,
+      role: userRole,
     });
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Server error",
-      error: err.message,
-    });
+    return sendError(res, "Server error", 500, err.message);
   }
 };
 

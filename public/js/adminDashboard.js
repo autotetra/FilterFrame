@@ -11,7 +11,7 @@ if (!token) {
   })
     .then((res) => res.json())
     .then((data) => {
-      if (data.status !== "success") throw data;
+      if (data.status !== "success") throw new Error(data.message || "Failed");
 
       const tableBody = document.getElementById("users");
       tableBody.innerHTML = "";
@@ -52,11 +52,12 @@ if (!token) {
           })
             .then((res) => res.json())
             .then((data) => {
+              if (data.status !== "success") throw new Error(data.message);
               alert(data.message || "User status updated");
             })
             .catch((err) => {
               console.error("Update failed:", err);
-              alert("Error updating user status");
+              alert(err.message || "Error updating user status");
             });
         });
 
@@ -70,7 +71,7 @@ if (!token) {
     })
     .catch((err) => {
       console.error("Fetch users failed:", err);
-      alert("Unauthorized or failed to fetch users");
+      alert(err.message || "Unauthorized or failed to fetch users");
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });

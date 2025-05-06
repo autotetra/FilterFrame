@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
-const { sendEmail } = require("../utils/emailSender");
+const { sendEmail } = require("../services/emailService");
+const { sendSuccess, sendError } = require("../services/responseService");
 require("dotenv").config();
 
 const updateUserStatus = async (req, res) => {
@@ -10,10 +11,7 @@ const updateUserStatus = async (req, res) => {
   try {
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
+      return sendError(res, "User not found", 404);
     }
 
     user.status = status;
@@ -27,36 +25,29 @@ const updateUserStatus = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      status: "success",
-      message: `User status updated to ${status}`,
-      users: { userId: user._id, email: user.email, status: user.status },
+    return sendSuccess(res, `User status updated to ${status}`, {
+      userId: user._id,
+      email: user.email,
+      status: user.status,
     });
   } catch (err) {
     console.error("Update user status error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Error updating user status",
-      error: err.message,
-    });
+    return sendError(res, "Error updating user status", 500, err.message);
   }
 };
 
 const getUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password"); // Exclude password
-    res.status(200).json({
-      status: "success",
-      message: "Users fetched successfully",
-      users: users,
-    });
+    return sendSuccess(res, "Users fetched successfully", users);
   } catch (err) {
     console.error("Fetch users error:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Server error while fetching users",
-      error: err.message,
-    });
+    return sendError(
+      res,
+      "Server error while fetching users",
+      500,
+      err.message
+    );
   }
 };
 

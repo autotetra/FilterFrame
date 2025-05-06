@@ -1,9 +1,10 @@
-const { client, type } = require("../services/frontEndIntegration");
+const { client, type } = require("../core/integrationBridge");
+const { sendSuccess, sendError } = require("../services/responseService");
 
 const getAllRecords = async (req, res) => {
   try {
     if (type !== "notion") {
-      return res.status(400).json({ message: "Unsupported integration type" });
+      return sendError(res, "Unsupported integration type", 400);
     }
 
     const databaseId = process.env.NOTION_DATABASE_ID;
@@ -18,18 +19,11 @@ const getAllRecords = async (req, res) => {
         },
       },
     });
-    res.status(200).json({
-      status: "success",
-      message: "Records fetched successfully",
-      data: response.results,
-    });
+
+    return sendSuccess(res, "Records fetched successfully", response.results);
   } catch (err) {
     console.error("Error fetching records:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Failed to fetch records",
-      error: err.message,
-    });
+    return sendError(res, "Failed to fetch records", 500, err.message);
   }
 };
 
@@ -61,15 +55,11 @@ const updateRecord = async (req, res) => {
         },
       },
     });
-    res.status(200).json({
-      status: "success",
-      message: "Record updated successfully",
-      data: response,
-    });
+
+    return sendSuccess(res, "Record updated successfully", response);
   } catch (err) {
-    res
-      .status(500)
-      .json({ status: "error", message: "Update failed", error: err.mesage });
+    console.error("Update record error:", err);
+    return sendError(res, "Update failed", 500, err.message);
   }
 };
 
@@ -82,18 +72,10 @@ const deleteRecord = async (req, res) => {
       archived: true, // Notion uses "archived" to mark a page as deleted
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "Recrord deleted succesfully",
-      data: { id: pageId },
-    });
+    return sendSuccess(res, "Record deleted successfully", { id: pageId });
   } catch (err) {
     console.error("Error deleting record:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Failed to delete record",
-      error: err.message,
-    });
+    return sendError(res, "Failed to delete record", 500, err.message);
   }
 };
 
@@ -127,18 +109,10 @@ const createRecord = async (req, res) => {
       },
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Record created successfully",
-      data: newPage,
-    });
+    return sendSuccess(res, "Record created successfully", newPage, 201);
   } catch (err) {
     console.error("Error creating record:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Failed to create record",
-      error: err.message,
-    });
+    return sendError(res, "Failed to create record", 500, err.message);
   }
 };
 
