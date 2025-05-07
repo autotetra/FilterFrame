@@ -151,6 +151,8 @@ if (!token) {
     })
     .catch((err) => {
       console.error("Error fetching data:", err);
+      localStorage.setItem("loginError", "Session expired or fetch failed");
+      // Redirect to login page
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });

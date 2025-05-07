@@ -1,4 +1,4 @@
-// services/recordService.js
+// core/recordService.js
 const { client } = require("../core/integrationBridge");
 
 const getAllRecords = async (userEmail) => {

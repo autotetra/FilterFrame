@@ -1,3 +1,9 @@
+const loginError = localStorage.getItem("loginError");
+if (loginError) {
+  document.getElementById("message").innerText = loginError;
+  localStorage.removeItem("loginError");
+}
+
 document
   .getElementById("login-form")
   .addEventListener("submit", async function (e) {

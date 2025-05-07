@@ -1,26 +1,19 @@
-const { client, type } = require("../core/integrationBridge");
+const {
+  getAllRecords: getRecordsFromService,
+  updateRecord: updateRecordInService,
+  deleteRecord: deleteRecordInService,
+  createRecord: createRecordInService,
+} = require("../core/recordService");
+
 const { sendSuccess, sendError } = require("../services/responseService");
+const { type } = require("../core/integrationBridge");
 
 const getAllRecords = async (req, res) => {
   try {
-    if (type !== "notion") {
-      return sendError(res, "Unsupported integration type", 400);
-    }
-
-    const databaseId = process.env.NOTION_DATABASE_ID;
     const userEmail = req.user.email;
+    const records = await getRecordsFromService(userEmail);
 
-    const response = await client.databases.query({
-      database_id: databaseId,
-      filter: {
-        property: "Assignee",
-        email: {
-          equals: userEmail,
-        },
-      },
-    });
-
-    return sendSuccess(res, "Records fetched successfully", response.results);
+    return sendSuccess(res, "Records fetched successfully", records);
   } catch (err) {
     console.error("Error fetching records:", err);
     return sendError(res, "Failed to fetch records", 500, err.message);
@@ -33,30 +26,20 @@ const updateRecord = async (req, res) => {
     const { name, status } = req.body;
     const userEmail = req.user.email;
 
-    const response = await client.pages.update({
-      page_id: pageId,
-      properties: {
-        Name: {
-          title: [
-            {
-              text: {
-                content: name,
-              },
-            },
-          ],
-        },
-        Status: {
-          status: {
-            name: status,
-          },
-        },
-        Assignee: {
-          email: userEmail,
-        },
+    const properties = {
+      Name: {
+        title: [{ text: { content: name } }],
       },
-    });
+      Status: {
+        status: { name: status },
+      },
+      Assignee: {
+        email: userEmail,
+      },
+    };
 
-    return sendSuccess(res, "Record updated successfully", response);
+    const result = await updateRecordInService(pageId, properties);
+    return sendSuccess(res, "Record updated successfully", result);
   } catch (err) {
     console.error("Update record error:", err);
     return sendError(res, "Update failed", 500, err.message);
@@ -66,12 +49,7 @@ const updateRecord = async (req, res) => {
 const deleteRecord = async (req, res) => {
   try {
     const pageId = req.params.id;
-
-    await client.pages.update({
-      page_id: pageId,
-      archived: true, // Notion uses "archived" to mark a page as deleted
-    });
-
+    const result = await deleteRecordInService(pageId);
     return sendSuccess(res, "Record deleted successfully", { id: pageId });
   } catch (err) {
     console.error("Error deleting record:", err);
@@ -84,31 +62,19 @@ const createRecord = async (req, res) => {
     const { name, status } = req.body;
     const userEmail = req.user.email;
 
-    const newPage = await client.pages.create({
-      parent: {
-        database_id: process.env.NOTION_DATABASE_ID,
+    const properties = {
+      Name: {
+        title: [{ text: { content: name } }],
       },
-      properties: {
-        Name: {
-          title: [
-            {
-              text: {
-                content: name,
-              },
-            },
-          ],
-        },
-        Status: {
-          status: {
-            name: status,
-          },
-        },
-        Assignee: {
-          email: userEmail,
-        },
+      Status: {
+        status: { name: status },
       },
-    });
+      Assignee: {
+        email: userEmail,
+      },
+    };
 
+    const newPage = await createRecordInService(properties);
     return sendSuccess(res, "Record created successfully", newPage, 201);
   } catch (err) {
     console.error("Error creating record:", err);
@@ -116,4 +82,9 @@ const createRecord = async (req, res) => {
   }
 };
 
-module.exports = { getAllRecords, updateRecord, deleteRecord, createRecord };
+module.exports = {
+  getAllRecords,
+  updateRecord,
+  deleteRecord,
+  createRecord,
+};
