@@ -4,7 +4,7 @@ const { sendError } = require("../services/responseService"); // ✅ Unified res
 require("dotenv").config();
 
 const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers["authorization"]; // Case Insensitive
   const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
 
   if (!token) {
